@@ -35,7 +35,7 @@ def test_employee_count_is_read_from_database(tmp_path):
     assert body["intent"] == "employee_count"
     assert body["data"] == [{"employee_count": 6}]
     assert body["sources"] == [{"table": "employees", "query_id": "employee_count", "row_count": 1}]
-    assert "6 employees" in body["answer"]
+    assert body["answer"] == "البيانات المسجلة عندي فيها 6 موظف."
     assert body["trace"][1]["component"] == "data_agent"
 
 
@@ -47,6 +47,7 @@ def test_department_question_routes_to_bound_parameter_query(tmp_path):
     assert body["intent"] == "department_employees"
     assert len(body["data"]) == 3
     assert {row["department"] for row in body["data"]} == {"Engineering"}
+    assert body["answer"].startswith("لقيت 3 موظف في قسم Engineering:")
 
 
 def test_arabic_open_tasks_question_is_supported(tmp_path):
@@ -56,6 +57,18 @@ def test_arabic_open_tasks_question_is_supported(tmp_path):
     assert response.status_code == 200
     assert body["intent"] == "open_tasks"
     assert len(body["data"]) == 3
+    assert body["answer"].startswith("لقيت 3 مهمة مفتوحة أو لسه شغالة:")
+
+
+def test_project_status_answer_is_in_colloquial_egyptian_arabic(tmp_path):
+    with client_for(tmp_path) as client:
+        response = client.post("/api/v1/ask", json={"question": "حالة المشاريع إيه؟"})
+    body = response.json()
+    assert response.status_code == 200
+    assert body["intent"] == "project_status"
+    assert body["answer"].startswith("لقيت 3 مشروع. حالتهم:")
+    assert body["sources"] == [{"table": "projects", "query_id": "project_status", "row_count": 3}]
+    assert body["trace"][-1]["step"] == "compose_answer"
 
 
 def test_unsupported_question_does_not_invent_data_or_query_database(tmp_path):
@@ -64,6 +77,7 @@ def test_unsupported_question_does_not_invent_data_or_query_database(tmp_path):
     body = response.json()
     assert response.status_code == 200
     assert body["intent"] == "unsupported"
+    assert body["answer"].startswith("مش قادر أجاوب على السؤال ده")
     assert body["data"] == []
     assert body["sources"] == []
     assert body["trace"][1]["status"] == "skipped"

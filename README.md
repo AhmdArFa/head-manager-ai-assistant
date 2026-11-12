@@ -8,6 +8,8 @@ A small, extensible Chief Orchestrator starter for answering company questions f
 
 `POST /api/v1/ask` accepts a business question, routes it through the Chief Orchestrator to the Data Agent, runs a reviewed read-only SQL query from a fixed catalog, and returns an answer with the queried table and row count. Unknown question types are reported honestly rather than guessed.
 
+Assistant answer text is written in natural colloquial Egyptian Arabic. Names, job titles, department names, and database statuses remain as stored in the source data; the evidence and execution trace are unchanged.
+
 Current supported questions include:
 
 - “How many employees do we have?” / “كام موظف عندنا؟”

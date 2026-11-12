@@ -73,8 +73,8 @@ class DataAgent:
             return DataResult(
                 intent=intent,
                 answer=(
-                    "I can't answer that from the current data catalog. Try asking about "
-                    "employee counts or departments, project status, or open tasks."
+                    "مش قادر أجاوب على السؤال ده من البيانات المتاحة عندي. "
+                    "جرّب تسأل عن عدد الموظفين أو الأقسام، حالة المشاريع، أو المهام المفتوحة."
                 ),
                 data=[],
                 source=None,
@@ -129,22 +129,22 @@ class DataAgent:
     def _format_answer(intent: str, rows: list[dict[str, Any]], parameter: str | None) -> str:
         if intent == "employee_count":
             count = rows[0]["employee_count"]
-            return f"The database contains {count} employees."
+            return f"البيانات المسجلة عندي فيها {count} موظف."
         if intent in ("employee_directory", "department_employees"):
             if not rows:
-                return f"No employees were found in {parameter}." if parameter else "No employees were found."
+                return f"ملقتش موظفين في قسم {parameter}." if parameter else "ملقتش أي موظفين في البيانات."
             names = ", ".join(f"{row['name']} ({row['title']}, {row['department']})" for row in rows)
             if intent == "department_employees":
-                return f"{len(rows)} employees found in {parameter}: {names}."
-            return f"Employee directory contains {len(rows)} records: {names}."
+                return f"لقيت {len(rows)} موظف في قسم {parameter}: {names}."
+            return f"دي بيانات {len(rows)} موظف لقيتهم: {names}."
         if intent == "project_status":
             if not rows:
-                return "No projects were found in the database."
+                return "ملقتش أي مشاريع مسجلة في قاعدة البيانات."
             statuses = "; ".join(f"{row['name']}: {row['status']}" for row in rows)
-            return f"Found {len(rows)} projects. {statuses}."
+            return f"لقيت {len(rows)} مشروع. حالتهم: {statuses}."
         if intent == "open_tasks":
             if not rows:
-                return "There are no open or in-progress tasks in the database."
+                return "مفيش مهام مفتوحة أو لسه شغالة في قاعدة البيانات."
             tasks = "; ".join(f"{row['title']} ({row['status']})" for row in rows)
-            return f"Found {len(rows)} open or in-progress tasks: {tasks}."
-        return "No answer is available."
+            return f"لقيت {len(rows)} مهمة مفتوحة أو لسه شغالة: {tasks}."
+        return "مش متاح عندي إجابة للسؤال ده."

@@ -8,6 +8,7 @@ Each phase should finish with a working API endpoint and tests before the next c
 - The Data Agent executes only reviewed, read-only SQL from a fixed query catalog.
 - The response includes its evidence table and a short execution trace.
 - Local SQLite is seeded with explicitly synthetic data so the API can run without private credentials.
+- Assistant answer text is natural colloquial Egyptian Arabic; names and other source values remain unchanged.
 - **Acceptance:** health check and representative English/Arabic questions pass API tests; unsupported requests are not fabricated.
 
 ## Step 2 — Connect an approved company database
