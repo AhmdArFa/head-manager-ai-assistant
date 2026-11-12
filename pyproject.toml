@@ -1,0 +1,9 @@
+[project]
+name = "head-manager-ai-assistant"
+version = "0.1.0"
+description = "Extensible, data-grounded Chief Orchestrator API starter"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
