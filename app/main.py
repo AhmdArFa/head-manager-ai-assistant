@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 from app.db import configured_database_path, initialize_database
 from app.orchestrator import ChiefOrchestrator
@@ -23,6 +24,8 @@ def create_app(database_path: str | Path | None = None) -> FastAPI:
         version="0.1.0",
         lifespan=lifespan,
     )
+    demo_dir = Path(__file__).resolve().parent.parent / "demo"
+    application.mount("/demo", StaticFiles(directory=demo_dir, html=True), name="demo")
 
     @application.get("/health", response_model=HealthResponse, tags=["system"])
     def health() -> HealthResponse:

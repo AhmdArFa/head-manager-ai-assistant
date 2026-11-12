@@ -20,6 +20,13 @@ def test_health_is_healthy(tmp_path):
     assert response.json()["status"] == "ok"
 
 
+def test_demo_page_is_served_by_the_api_app(tmp_path):
+    with client_for(tmp_path) as client:
+        response = client.get("/demo/")
+    assert response.status_code == 200
+    assert "GROUNDED COMPANY Q&amp;A" in response.text
+
+
 def test_employee_count_is_read_from_database(tmp_path):
     with client_for(tmp_path) as client:
         response = client.post("/api/v1/ask", json={"question": "How many employees do we have?"})
