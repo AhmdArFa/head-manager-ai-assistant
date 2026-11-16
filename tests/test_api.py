@@ -27,6 +27,13 @@ def test_demo_page_is_served_by_the_api_app(tmp_path):
     assert "GROUNDED COMPANY Q&amp;A" in response.text
 
 
+def test_root_redirects_to_demo(tmp_path):
+    with client_for(tmp_path) as client:
+        response = client.get("/", follow_redirects=False)
+    assert response.status_code == 307
+    assert response.headers["location"] == "/demo/"
+
+
 def test_employee_count_is_read_from_database(tmp_path):
     with client_for(tmp_path) as client:
         response = client.post("/api/v1/ask", json={"question": "How many employees do we have?"})

@@ -7,8 +7,9 @@ from app.schemas import AskResponse, TraceStep
 class ChiefOrchestrator:
     """Minimal deterministic supervisor; new specialist agents can be added behind this boundary."""
 
-    def __init__(self, database_path: str):
-        self.data_agent = DataAgent(database_path)
+    def __init__(self, database_target: str | None = None, backend_type: str = "sqlite"):
+        self.backend_type = backend_type
+        self.data_agent = DataAgent(database_target=database_target, backend_type=backend_type)
 
     def run(self, question: str) -> AskResponse:
         result = self.data_agent.answer_question(question)
@@ -26,7 +27,7 @@ class ChiefOrchestrator:
                     step="query_data",
                     component="data_agent",
                     status="completed",
-                    detail=f"Executed reviewed query '{result.source['query_id']}' read-only.",
+                    detail=f"Executed reviewed query '{result.source['query_id']}' read-only on {self.backend_type}.",
                 )
             )
         else:

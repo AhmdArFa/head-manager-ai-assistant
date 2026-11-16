@@ -49,17 +49,17 @@ function renderAnswer(body) {
   avatar.setAttribute("aria-hidden", "true");
   avatar.innerHTML = '<svg viewBox="0 0 20 20" fill="none"><path d="M5 15V5l5 6 5-6v10M5 10h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="5" cy="5" r="1.5" fill="currentColor"/><circle cx="15" cy="5" r="1.5" fill="currentColor"/></svg>';
   const identityCopy = node("span");
-  identityCopy.append(node("strong", "", "Head Manager Assistant"));
-  identityCopy.append(node("small", "", "Grounded response from the demo database"));
+  identityCopy.append(node("strong", "", "المساعد التنفيذي للإدارة"));
+  identityCopy.append(node("small", "", "بيانات مباشرة ومعتمدة من نظام 4S ERP & CRM"));
   assistant.append(avatar, identityCopy);
   header.append(assistant, node("span", "intent-badge", humanize(body.intent || "response")));
 
   const content = node("div", "answer-body");
-  content.append(node("p", "answer-copy", body.answer || "The API returned no answer text."));
+  content.append(node("p", "answer-copy", body.answer || "لم يتم استلام نص للإجابة."));
   const responseMeta = node("div", "response-meta");
-  responseMeta.append(node("span", "", `Request ${String(body.request_id || "").slice(0, 8) || "—"}`));
+  responseMeta.append(node("span", "", `طلب #${String(body.request_id || "").slice(0, 8) || "—"}`));
   responseMeta.append(node("span", "meta-separator", "·"));
-  responseMeta.append(node("span", "", "Source details below"));
+  responseMeta.append(node("span", "", "تفاصيل المصدر وسجل التنفيذ بالأسفل"));
   content.append(responseMeta);
 
   const source = Array.isArray(body.sources) ? body.sources[0] : null;
@@ -69,18 +69,18 @@ function renderAnswer(body) {
   const title = node("div", "evidence-title");
   const tableIcon = node("span");
   tableIcon.innerHTML = '<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="2.3" y="2.7" width="11.4" height="10.6" rx="1.5" stroke="currentColor" stroke-width="1.25"/><path d="M2.8 6.2h10.4M6 6.4v6.4M9.5 6.4v6.4" stroke="currentColor" stroke-width="1.1"/></svg>';
-  title.append(tableIcon, node("span", "", source ? "Database evidence" : "Evidence status"));
+  title.append(tableIcon, node("span", "", source ? "سجلات النظام ومصدر البيانات" : "حالة الاستعلام"));
   evidenceHead.append(title);
   if (source) {
-    evidenceHead.append(node("span", "source-chip", `${source.table} · ${source.row_count} row${source.row_count === 1 ? "" : "s"}`));
+    evidenceHead.append(node("span", "source-chip", `جدول: ${source.table} · ${source.row_count} سجل`));
   } else {
-    evidenceHead.append(node("span", "source-chip", "No source queried"));
+    evidenceHead.append(node("span", "source-chip", "لم يتم الاستعلام"));
   }
   evidence.append(evidenceHead);
   if (Array.isArray(body.data) && body.data.length) {
     evidence.append(renderDataTable(body.data));
   } else {
-    evidence.append(node("p", "empty-data", source ? "The query returned no records." : "No database query was run for this question."));
+    evidence.append(node("p", "empty-data", source ? "لم يُرجع الاستعلام أي سجلات." : "لم يتم تشغيل استعلام في قاعدة البيانات لهذا السؤال."));
   }
   content.append(evidence);
 
@@ -219,4 +219,74 @@ newQuestionButton.addEventListener("click", () => {
   questionInput.focus();
 });
 
+const themeToggle = document.getElementById("themeToggle");
+const themeLabel = document.getElementById("themeLabel");
+const colorSchemeMeta = document.querySelector('meta[name="color-scheme"]');
+
+function updateThemeUI(scheme) {
+  const isSystemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const isDark = scheme === "dark" || (scheme === "light dark" && isSystemDark);
+  document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
+  if (themeLabel) {
+    themeLabel.textContent = isDark ? "Light mode" : "Dark mode";
+  }
+}
+
+function initTheme() {
+  let stored = null;
+  try {
+    stored = localStorage.getItem("color-scheme");
+  } catch (_) {}
+
+  if (stored === "dark" || stored === "light") {
+    if (colorSchemeMeta) colorSchemeMeta.content = stored;
+    updateThemeUI(stored);
+  } else {
+    updateThemeUI("light dark");
+  }
+
+  if (themeToggle) {
+    themeToggle.addEventListener("click", () => {
+      const isSystemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const currentMeta = colorSchemeMeta ? colorSchemeMeta.content : "light dark";
+      const isCurrentlyDark = currentMeta === "dark" || (currentMeta === "light dark" && isSystemDark);
+      const target = isCurrentlyDark ? "light" : "dark";
+
+      try {
+        if ((target === "dark" && isSystemDark) || (target === "light" && !isSystemDark)) {
+          localStorage.removeItem("color-scheme");
+          if (colorSchemeMeta) colorSchemeMeta.content = "light dark";
+          updateThemeUI("light dark");
+        } else {
+          localStorage.setItem("color-scheme", target);
+          if (colorSchemeMeta) colorSchemeMeta.content = target;
+          updateThemeUI(target);
+        }
+      } catch (_) {
+        if (colorSchemeMeta) colorSchemeMeta.content = target;
+        updateThemeUI(target);
+      }
+    });
+  }
+
+  window.addEventListener("storage", (e) => {
+    if (e.key === "color-scheme") {
+      const newScheme = e.newValue || "light dark";
+      if (colorSchemeMeta) colorSchemeMeta.content = newScheme;
+      updateThemeUI(newScheme);
+    }
+  });
+
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+    let currentStored = null;
+    try {
+      currentStored = localStorage.getItem("color-scheme");
+    } catch (_) {}
+    if (!currentStored) {
+      updateThemeUI("light dark");
+    }
+  });
+}
+
+initTheme();
 checkApi();
