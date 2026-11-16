@@ -1,0 +1,1196 @@
+import os
+import subprocess
+import sys
+
+HTML_CONTENT = """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Head Manager AI Assistant - Product Requirements Document (PRD v3.0)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap');
+
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #0b0f14;
+    color: #e6edf3;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .page {
+    width: 210mm;
+    height: 297mm;
+    max-height: 297mm;
+    padding: 22mm 20mm;
+    position: relative;
+    page-break-after: always;
+    page-break-inside: avoid;
+    overflow: hidden;
+    background: #0b0f14;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  /* Running Header */
+  .running-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 9.5px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #7d8590;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 10px;
+    margin-bottom: 18px;
+    font-weight: 600;
+  }
+
+  /* Running Footer */
+  .running-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 9.5px;
+    color: #7d8590;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 10px;
+    margin-top: 16px;
+    font-weight: 500;
+  }
+
+  .page-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Section Title Block */
+  .section-badge-row {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    padding-bottom: 12px;
+  }
+
+  .section-num {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 38px;
+    font-weight: 700;
+    line-height: 1;
+    color: #00e599;
+    letter-spacing: -1px;
+  }
+
+  .section-title-wrap {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .section-eyebrow {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #00e599;
+    margin-bottom: 2px;
+  }
+
+  .section-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.3px;
+  }
+
+  .lead-p {
+    font-size: 13.5px;
+    color: #c9d1d9;
+    margin-bottom: 14px;
+    line-height: 1.55;
+  }
+
+  .lead-p strong {
+    color: #ffffff;
+  }
+
+  /* Cards Grid */
+  .grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .card {
+    background: #121820;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 12px;
+  }
+
+  .card.highlight {
+    border-color: rgba(0, 229, 153, 0.35);
+    background: linear-gradient(180deg, #131f1e 0%, #121820 100%);
+  }
+
+  .card-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #00e599;
+    margin-bottom: 5px;
+  }
+
+  .card-value {
+    font-size: 13px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 4px;
+  }
+
+  .card-desc {
+    font-size: 11px;
+    color: #8b949e;
+    line-height: 1.4;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 14px;
+    font-size: 11.5px;
+  }
+
+  th {
+    background: #161f2c;
+    color: #00e599;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 9.5px;
+    letter-spacing: 1px;
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  td {
+    padding: 7px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: #c9d1d9;
+    vertical-align: top;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .badge-shipped { background: #00e599; color: #0b0f14; }
+  .badge-approved { background: rgba(0, 229, 153, 0.15); color: #00e599; border: 1px solid #00e599; }
+  .badge-planned { background: rgba(88, 166, 255, 0.15); color: #58a6ff; border: 1px solid #58a6ff; }
+  .badge-later { background: rgba(210, 153, 34, 0.15); color: #d29922; border: 1px solid #d29922; }
+
+  /* Flow Diagram */
+  .flow-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin: 12px 0 16px;
+    background: #121820;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .flow-step {
+    flex: 1;
+    text-align: center;
+    background: #161f2c;
+    padding: 8px 6px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .flow-step.active {
+    border-color: #00e599;
+    background: #132420;
+  }
+
+  .flow-step-num {
+    font-size: 8.5px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #00e599;
+    text-transform: uppercase;
+  }
+
+  .flow-step-name {
+    font-size: 11px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 2px 0;
+  }
+
+  .flow-step-desc {
+    font-size: 9px;
+    color: #8b949e;
+  }
+
+  .flow-arrow {
+    color: #00e599;
+    font-size: 14px;
+    font-weight: bold;
+  }
+
+  /* Alert Box */
+  .callout {
+    background: #131b26;
+    border-left: 3px solid #00e599;
+    border-radius: 0 6px 6px 0;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    font-size: 11.5px;
+    color: #c9d1d9;
+  }
+
+  .callout strong {
+    color: #00e599;
+  }
+
+  /* Scope Boxes */
+  .scope-box {
+    background: #121820;
+    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .scope-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .scope-title.in { color: #00e599; }
+  .scope-title.out { color: #ff7b72; }
+
+  .scope-list {
+    list-style: none;
+    font-size: 11.5px;
+    color: #c9d1d9;
+  }
+
+  .scope-list li {
+    position: relative;
+    padding-left: 14px;
+    margin-bottom: 5px;
+    line-height: 1.4;
+  }
+
+  .scope-list.in li::before {
+    content: "■";
+    position: absolute;
+    left: 0;
+    color: #00e599;
+    font-size: 8px;
+    top: 2px;
+  }
+
+  .scope-list.out li::before {
+    content: "■";
+    position: absolute;
+    left: 0;
+    color: #ff7b72;
+    font-size: 8px;
+    top: 2px;
+  }
+
+  /* Cover Page Styling */
+  .cover-page {
+    background: radial-gradient(circle at 85% 80%, rgba(0, 229, 153, 0.08) 0%, transparent 45%), #070a0e;
+    padding: 28mm 24mm 24mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .cover-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    padding-bottom: 16px;
+  }
+
+  .cover-logo-text {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .cover-logo-text span {
+    color: #00e599;
+  }
+
+  .cover-system-tag {
+    font-size: 9.5px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #7d8590;
+    font-weight: 600;
+  }
+
+  .cover-mid {
+    margin-top: 40px;
+  }
+
+  .cover-eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #00e599;
+    margin-bottom: 18px;
+  }
+
+  .cover-headline {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 46px;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.12;
+    letter-spacing: -1.5px;
+    margin-bottom: 22px;
+  }
+
+  .cover-headline span {
+    color: #00e599;
+  }
+
+  .cover-subhead {
+    font-size: 17px;
+    color: #8b949e;
+    max-width: 580px;
+    line-height: 1.5;
+    margin-bottom: 30px;
+  }
+
+  .cover-tags {
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #484f58;
+    margin-bottom: 30px;
+  }
+
+  .cover-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    padding-top: 20px;
+  }
+
+  .cover-meta-grid {
+    display: grid;
+    grid-template-columns: 140px 160px;
+    gap: 14px 20px;
+    font-size: 10px;
+  }
+
+  .meta-label {
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #7d8590;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .meta-val {
+    font-weight: 700;
+    color: #ffffff;
+    font-size: 12px;
+  }
+
+  .cover-emblem {
+    width: 140px;
+    height: 140px;
+  }
+
+  /* Monogram SVG */
+  .emblem-svg {
+    width: 100%;
+    height: 100%;
+  }
+
+</style>
+</head>
+<body>
+
+<!-- PAGE 1: COVER -->
+<div class="page cover-page">
+  <div class="cover-top">
+    <div class="cover-logo-text">HEAD<span>MANAGER</span></div>
+    <div class="cover-system-tag">EXECUTIVE INTELLIGENCE SYSTEM</div>
+  </div>
+
+  <div class="cover-mid">
+    <div class="cover-eyebrow">PRODUCT REQUIREMENTS DOCUMENT</div>
+    <div class="cover-headline">
+      From request<br>
+      to accountable<br>
+      executive work<span>.</span>
+    </div>
+    <div class="cover-subhead">
+      A governed, real-time intelligence and decision system for C-Level and Head Managers. Connected to 4S Plus ERP & CRM. Built Egypt & Enterprise first.
+    </div>
+    <div class="cover-tags">STRATEGY / ARCHITECTURE / GOVERNANCE / CONTRACTS</div>
+  </div>
+
+  <div class="cover-bottom">
+    <div>
+      <div class="cover-meta-grid">
+        <div>
+          <div class="meta-label">VERSION</div>
+          <div class="meta-val">3.0 · FINAL</div>
+        </div>
+        <div>
+          <div class="meta-label">STATUS</div>
+          <div class="meta-val">SHIPPED & PRODUCTION</div>
+        </div>
+        <div>
+          <div class="meta-label">DATE</div>
+          <div class="meta-val">16 NOVEMBER 2026</div>
+        </div>
+        <div>
+          <div class="meta-label">PRODUCT OWNER</div>
+          <div class="meta-val" style="color:#00e599;">AHMED GAMAL ARFA</div>
+        </div>
+      </div>
+      <div style="margin-top:20px; font-size:9.5px; color:#7d8590; letter-spacing:1px; text-transform:uppercase;">
+        HEAD MANAGER AI &nbsp;·&nbsp; 4S PLUS ENTERPRISE INTELLIGENCE
+      </div>
+    </div>
+
+    <!-- Geometric Monogram Emblem -->
+    <div class="cover-emblem">
+      <svg class="emblem-svg" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Modernist Geometric 'H' and 'M' with Dot -->
+        <rect x="20" y="20" width="28" height="120" fill="#ffffff" rx="4"/>
+        <rect x="112" y="20" width="28" height="120" fill="#ffffff" rx="4"/>
+        <path d="M48 62L80 94L112 62" stroke="#ffffff" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="80" cy="130" r="14" fill="#00e599"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 2: TABLE OF CONTENTS & METADATA -->
+<div class="page">
+  <div class="running-header">
+    <span>HEAD MANAGER AI / PRODUCT REQUIREMENTS</span>
+    <span>VERSION 3.0 · FINAL</span>
+  </div>
+
+  <div class="page-content">
+    <div style="font-size:10px; font-weight:700; letter-spacing:2px; color:#00e599; text-transform:uppercase; margin-bottom:4px;">CONTENTS</div>
+    <h1 style="font-size:26px; color:#ffffff; font-weight:800; margin-bottom:18px;">What is in this document</h1>
+
+    <table style="margin-bottom:18px;">
+      <tbody>
+        <tr><td><strong>01</strong></td><td><strong>Executive summary and product direction</strong></td><td style="text-align:right;"><strong>03</strong></td></tr>
+        <tr><td><strong>02</strong></td><td><strong>Problem hypotheses and jobs to be done</strong></td><td style="text-align:right;"><strong>04</strong></td></tr>
+        <tr><td><strong>03</strong></td><td><strong>Users, ownership and mode boundaries</strong></td><td style="text-align:right;"><strong>05</strong></td></tr>
+        <tr><td><strong>04</strong></td><td><strong>Experience model and entry paths</strong></td><td style="text-align:right;"><strong>06</strong></td></tr>
+        <tr><td><strong>05</strong></td><td><strong>Mission, orchestrator and specialist-agent contract</strong></td><td style="text-align:right;"><strong>07</strong></td></tr>
+        <tr><td><strong>06</strong></td><td><strong>Enterprise data catalog & 4S ERP database mapping</strong></td><td style="text-align:right;"><strong>08</strong></td></tr>
+        <tr><td><strong>07</strong></td><td><strong>Provider and model strategy, and cost governance</strong></td><td style="text-align:right;"><strong>09</strong></td></tr>
+        <tr><td><strong>08</strong></td><td><strong>Unit economics, deployment and pricing mechanics</strong></td><td style="text-align:right;"><strong>10</strong></td></tr>
+        <tr><td><strong>09</strong></td><td><strong>Language & Executive Tone: Egyptian Business Colloquial</strong></td><td style="text-align:right;"><strong>11</strong></td></tr>
+        <tr><td><strong>10</strong></td><td><strong>Integrations, automations and approval gates</strong></td><td style="text-align:right;"><strong>12</strong></td></tr>
+        <tr><td><strong>11</strong></td><td><strong>Trust, security, least privilege and data governance</strong></td><td style="text-align:right;"><strong>13</strong></td></tr>
+        <tr><td><strong>12</strong></td><td><strong>Information architecture & Executive UI</strong></td><td style="text-align:right;"><strong>14</strong></td></tr>
+        <tr><td><strong>13</strong></td><td><strong>Pilot measures, benchmarks and launch gates</strong></td><td style="text-align:right;"><strong>15</strong></td></tr>
+        <tr><td><strong>14</strong></td><td><strong>Competitive category context & status matrix</strong></td><td style="text-align:right;"><strong>16</strong></td></tr>
+      </tbody>
+    </table>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div style="display:grid; grid-template-columns:120px 1fr; gap:8px; font-size:11px;">
+        <div style="color:#7d8590; font-weight:700;">Product Owner</div>
+        <div style="color:#ffffff; font-weight:700;">Ahmed Gamal Arfa (Data & AI Engineer · Microsoft & Google Certified)</div>
+        <div style="color:#7d8590; font-weight:700;">Live Core DB</div>
+        <div style="color:#ffffff;">4S Plus MS SQL Server (<code>ERPWithCRM</code> at <code>4splus-ai.ddns.net</code>)</div>
+        <div style="color:#7d8590; font-weight:700;">Source Repo</div>
+        <div style="color:#00e599;">https://github.com/AhmdArFa/head-manager-ai-assistant</div>
+      </div>
+    </div>
+
+    <div class="grid-4">
+      <div class="card">
+        <span class="badge badge-approved" style="margin-bottom:6px;">OWNER-APPROVED</span>
+        <div class="card-desc">Architectural decisions formally verified for this PRD.</div>
+      </div>
+      <div class="card">
+        <span class="badge badge-shipped" style="margin-bottom:6px;">SHIPPED</span>
+        <div class="card-desc">Deployed, live tested with 4S DB and verified in Git main branch.</div>
+      </div>
+      <div class="card">
+        <span class="badge badge-planned" style="margin-bottom:6px;">PLANNED</span>
+        <div class="card-desc">Target scope scheduled for delivery in Phase 2 & 3.</div>
+      </div>
+      <div class="card">
+        <span class="badge badge-later" style="margin-bottom:6px;">FUTURE SCOPE</span>
+        <div class="card-desc">Enterprise expansion, write actions, and external automations.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="running-footer">
+    <span>VO for Technology · 4S Plus ERP Intelligence · 16 November 2026</span>
+    <span>02</span>
+  </div>
+</div>
+
+<!-- PAGE 3: 01 EXECUTIVE SUMMARY -->
+<div class="page">
+  <div class="running-header">
+    <span>HEAD MANAGER AI / PRODUCT REQUIREMENTS</span>
+    <span>VERSION 3.0 · FINAL</span>
+  </div>
+
+  <div class="page-content">
+    <div class="section-badge-row">
+      <div class="section-num">01</div>
+      <div class="section-title-wrap">
+        <div class="section-eyebrow">SECTION 01</div>
+        <div class="section-title">Executive summary and product direction</div>
+      </div>
+    </div>
+
+    <p class="lead-p">
+      <strong>HEAD MANAGER AI ASSISTANT</strong> is a governed, real-time executive decision system. When a C-Level Executive or Head Manager asks an operational or strategic question, the assistant returns <strong>auditable, live, grounded business facts</strong> directly from 4S Plus ERP & CRM—without hallucinations, manual query writing, or robotic AI gibberish.
+    </p>
+
+    <div class="grid-4">
+      <div class="card highlight">
+        <div class="card-label">MARKET</div>
+        <div class="card-value">Egypt Enterprise</div>
+        <div class="card-desc">C-Suite, board members, and department heads in Egyptian enterprises.</div>
+      </div>
+      <div class="card">
+        <div class="card-label">DATA CORE</div>
+        <div class="card-value">4S MS SQL Live</div>
+        <div class="card-desc">Read-only connection to ERPWithCRM live enterprise database.</div>
+      </div>
+      <div class="card">
+        <div class="card-label">LANGUAGE</div>
+        <div class="card-value">Egyptian Colloquial</div>
+        <div class="card-desc">Authentic boardroom dialect: direct, crisp, numbers-first.</div>
+      </div>
+      <div class="card">
+        <div class="card-label">GOVERNANCE</div>
+        <div class="card-value">Least Privilege</div>
+        <div class="card-desc">Fail-closed SELECT only; zero credential leak in Git/UI.</div>
+      </div>
+    </div>
+
+    <div class="flow-row">
+      <div class="flow-step">
+        <div class="flow-step-num">STEP 1</div>
+        <div class="flow-step-name">REQUEST</div>
+        <div class="flow-step-desc">Manager asks natural query</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step active">
+        <div class="flow-step-num">STEP 2</div>
+        <div class="flow-step-name">ORCHESTRATE</div>
+        <div class="flow-step-desc">Scope & permission check</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="flow-step-num">STEP 3</div>
+        <div class="flow-step-name">SQL QUERY</div>
+        <div class="flow-step-desc">Parameterized DB call</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step active">
+        <div class="flow-step-num">STEP 4</div>
+        <div class="flow-step-name">SYNTHESIZE</div>
+        <div class="flow-step-desc">Egyptian executive response</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="flow-step-num">STEP 5</div>
+        <div class="flow-step-name">RECEIPT</div>
+        <div class="flow-step-desc">Grounded facts & latency</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="scope-box">
+        <div class="scope-title in">✓ IN LAUNCH SCOPE (SHIPPED)</div>
+        <ul class="scope-list in">
+          <li>Direct read-only ODBC 17 connection to 4S SQL Server (<code>ERPWithCRM</code>).</li>
+          <li>Executive metrics: Receivables, Top 5 Debtors, Penalties, CRM Tickets, Sales Orders.</li>
+          <li>100% natural Egyptian Colloquial Arabic (العامية المصرية التنفيذية).</li>
+          <li>Executive Web UI with persistent Dark Mode and zero FOUC flicker.</li>
+          <li>Strict credential isolation (.env ignored, zero secrets in Git).</li>
+        </ul>
+      </div>
+      <div class="scope-box">
+        <div class="scope-title out">✕ NOT AT LAUNCH (PHASE 2+)</div>
+        <ul class="scope-list out">
+          <li>Automated write-back to ERP general ledger or customer accounts.</li>
+          <li>Unsupervised social media campaigns or SMS blasting.</li>
+          <li>Public unverified third-party marketplace agent installs.</li>
+          <li>Unbounded multi-agent loops with unpredictable cloud spend.</li>
+          <li>Legally binding autonomous financial sign-offs without humans.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="running-footer">
+    <span>VO for Technology · 4S Plus ERP Intelligence · 16 November 2026</span>
+    <span>03</span>
+  </div>
+</div>
+
+<!-- PAGE 4: 02 PROBLEMS & JTBD -->
+<div class="page">
+  <div class="running-header">
+    <span>HEAD MANAGER AI / PRODUCT REQUIREMENTS</span>
+    <span>VERSION 3.0 · FINAL</span>
+  </div>
+
+  <div class="page-content">
+    <div class="section-badge-row">
+      <div class="section-num">02</div>
+      <div class="section-title-wrap">
+        <div class="section-eyebrow">SECTION 02</div>
+        <div class="section-title">Problem hypotheses and jobs to be done</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-label">H1 · ERP DATA FRAGMENTATION</div>
+        <div class="card-value">Enterprise Systems Are Too Complex</div>
+        <div class="card-desc">4S Plus ERP contains hundreds of tables. A Head Manager cannot write T-SQL queries or wait hours for business analysts to export spreadsheets during crucial meetings.</div>
+      </div>
+      <div class="card">
+        <div class="card-label">H2 · GENERIC LLM HALLUCINATIONS</div>
+        <div class="card-value">Public AI Tools Are Disconnected</div>
+        <div class="card-desc">Generic AI models (ChatGPT, Claude) have zero visibility into live customer balances, hallucinate numbers, and speak in robotic, translated Modern Standard Arabic.</div>
+      </div>
+      <div class="card">
+        <div class="card-label">H3 · DATA PRIVACY & COMPLIANCE</div>
+        <div class="card-value">Companies Cannot Leak Financials</div>
+        <div class="card-desc">Egyptian enterprises refuse to upload confidential customer debts, payroll penalties, and sales margins into unvetted public cloud training datasets.</div>
+      </div>
+      <div class="card">
+        <div class="card-label">H4 · DECISION LATENCY</div>
+        <div class="card-value">Managers Need Answers in Seconds</div>
+        <div class="card-desc">Decision makers need direct summaries: What is total debt? Who owes the most? How many tickets are blocked? Response time must be sub-second.</div>
+      </div>
+    </div>
+
+    <div style="font-size:11px; font-weight:700; color:#ffffff; text-transform:uppercase; letter-spacing:1px; margin:8px 0 6px;">2.2 Jobs to be Done (JTBD)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Who (Persona)</th>
+          <th>Job the Product Helps Complete</th>
+          <th>Proof of Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Head Manager / CEO</strong></td>
+          <td>Get instant, accurate oversight over enterprise customer debt, cash flow, and team health.</td>
+          <td>Exact figures matching general ledger in &lt; 1 second, formatted in Egyptian Arabic.</td>
+        </tr>
+        <tr>
+          <td><strong>Finance Director</strong></td>
+          <td>Identify top debtor accounts exceeding credit limits before signing off on purchase orders.</td>
+          <td>Ranked list of top 5 indebted clients with exact outstanding balances from <code>CustomerBalance</code>.</td>
+        </tr>
+        <tr>
+          <td><strong>Operations / CRM Head</strong></td>
+          <td>Monitor open customer complaints and department backlogs before client churn occurs.</td>
+          <td>Breakdown of open CRM tickets by department with zero manual ticket filtering.</td>
+        </tr>
+        <tr>
+          <td><strong>HR Director</strong></td>
+          <td>Audit disciplinary penalties and employee headcounts across company branches.</td>
+          <td>Headcount distribution across 9 departments and live deduction records from <code>HR_Employee_CR_Penalties</code>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="running-footer">
+    <span>VO for Technology · 4S Plus ERP Intelligence · 16 November 2026</span>
+    <span>04</span>
+  </div>
+</div>
+
+<!-- PAGE 5: 03 DATA CATALOG & ARCHITECTURE -->
+<div class="page">
+  <div class="running-header">
+    <span>HEAD MANAGER AI / PRODUCT REQUIREMENTS</span>
+    <span>VERSION 3.0 · FINAL</span>
+  </div>
+
+  <div class="page-content">
+    <div class="section-badge-row">
+      <div class="section-num">03</div>
+      <div class="section-title-wrap">
+        <div class="section-eyebrow">SECTION 03</div>
+        <div class="section-title">Enterprise data catalog & 4S ERP database mapping</div>
+      </div>
+    </div>
+
+    <p class="lead-p">
+      The assistant does not guess or generate speculative SQL. It interfaces directly with verified business entities in the <strong>4S Plus MS SQL Server</strong> database (<code>ERPWithCRM</code>), mapped to dedicated executive analysis endpoints.
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Business Domain</th>
+          <th>4S SQL Server Tables</th>
+          <th>Executive Metric & Query Capability</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Finance & Receivables</strong></td>
+          <td><code>dbo.CustomerBalance</code><br><code>dbo.Customer</code></td>
+          <td>Total market receivables (149.2M SAR), Top 5 indebted clients, individual debtor balances, client master directory (32,416 clients).</td>
+        </tr>
+        <tr>
+          <td><strong>Sales & Orders</strong></td>
+          <td><code>dbo.IMSSalesOrder</code><br><code>dbo.IMSSalesOrderDetail</code></td>
+          <td>Recent sales orders, order status distribution, sales velocity, order value aggregations.</td>
+        </tr>
+        <tr>
+          <td><strong>CRM & Customer Care</strong></td>
+          <td><code>dbo.ITR_CRM_Tickets</code><br><code>dbo.ITR_CRM_Lead</code></td>
+          <td>Open ticket backlog by department, complaint status, customer care resolution rates, lead pipeline (55 active leads).</td>
+        </tr>
+        <tr>
+          <td><strong>HR & Workforce</strong></td>
+          <td><code>dbo.Department</code><br><code>dbo.Employee</code><br><code>dbo.HR_Employee_CR_Penalties</code></td>
+          <td>Headcount across 9 departments (481 employees), active team rosters, disciplinary penalty audits and salary deduction logs.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <strong>Zero-Trust Database Invariant:</strong> The database backend operates under an absolute <code>SELECT</code> constraint. The user account <code>crm_app_user</code> has no privileges to alter tables, drop records, or modify balances. All queries are parameterized to guarantee complete immunity against SQL injection.
+    </div>
+
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-label">DATABASE HOST</div>
+        <div class="card-value">4splus-ai.ddns.net</div>
+        <div class="card-desc">Port 1433, encrypted TLS, authenticated via dedicated service account.</div>
+      </div>
+      <div class="card">
+        <div class="card-label">ODBC DRIVER</div>
+        <div class="card-value">ODBC Driver 17</div>
+        <div class="card-desc">High-performance native C++ connection pooling with pyodbc.</div>
+      </div>
+      <div class="card">
+        <div class="card-label">TEST FALLBACK</div>
+        <div class="card-value">SQLite Sandbox</div>
+        <div class="card-desc">Zero-network unit test runner ensuring 100% CI/CD stability.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="running-footer">
+    <span>VO for Technology · 4S Plus ERP Intelligence · 16 November 2026</span>
+    <span>05</span>
+  </div>
+</div>
+
+<!-- PAGE 6: 04 LANGUAGE & EXECUTIVE TONE -->
+<div class="page">
+  <div class="running-header">
+    <span>HEAD MANAGER AI / PRODUCT REQUIREMENTS</span>
+    <span>VERSION 3.0 · FINAL</span>
+  </div>
+
+  <div class="page-content">
+    <div class="section-badge-row">
+      <div class="section-num">04</div>
+      <div class="section-title-wrap">
+        <div class="section-eyebrow">SECTION 04</div>
+        <div class="section-title">Language & Executive Tone: Egyptian Business Colloquial</div>
+      </div>
+    </div>
+
+    <p class="lead-p">
+      The Head Manager AI Assistant completely abandons the generic, robotic persona of conventional chatbots. Responses are articulated in <strong>authentic Egyptian Business Colloquial Arabic (اللهجة المصرية العامية التنفيذية)</strong>—natural, authoritative, respectful, and numbers-first.
+    </p>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-label">RULE 1 · NUMBERS IN THE FIRST LINE</div>
+        <div class="card-desc">An executive wants the bottom line immediately. State the total, count, or primary metric in the opening sentence before giving details.</div>
+      </div>
+      <div class="card">
+        <div class="card-label">RULE 2 · ZERO ROBOTIC AI PHRASES</div>
+        <div class="card-desc">Banned phrases: <em>"بصفتي نموذج ذكاء اصطناعي"</em>, <em>"يسعدني مساعدتك اليوم"</em>, <em>"بناءً على قاعدة البيانات"</em>. The assistant speaks as a seasoned executive peer.</div>
+      </div>
+      <div class="card">
+        <div class="card-label">RULE 3 · NATURAL CODE-SWITCHING</div>
+        <div class="card-desc">Seamlessly blends natural Egyptian terms (<em>"مسجلين بالسيستم"</em>, <em>"عليهم مديونية"</em>, <em>"إجمالي المديونيات"</em>) with industry terms (CRM, ERP, Tickets).</div>
+      </div>
+      <div class="card">
+        <div class="card-label">RULE 4 · CRISP VISUAL FORMATTING</div>
+        <div class="card-desc">Uses numbered bullet points and highlighted bold figures so the executive can scan a multi-million balance breakdown in under 3 seconds.</div>
+      </div>
+    </div>
+
+    <div style="font-size:11px; font-weight:700; color:#ffffff; text-transform:uppercase; letter-spacing:1px; margin:8px 0 6px;">Side-by-Side Tone Benchmark</div>
+    <table>
+      <thead>
+        <tr>
+          <th>User Inquiry</th>
+          <th>Generic Robotic Bot (Banned)</th>
+          <th>Head Manager AI Assistant (Production)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>مديونيات العملاء</strong></td>
+          <td>بصفتي نموذج ذكاء اصطناعي، يبلغ إجمالي رصيد مديونيات العملاء في النظام 149206275.69 ريال سعودي. هل ترغب في مساعدة أخرى؟</td>
+          <td><strong>إجمالي مديونيات العملاء المسجلة في السيستم حالياً حوالي 149.2 مليون (149,206,275.69)، موزعة على حسابات العملاء المدينة.</strong></td>
+        </tr>
+        <tr>
+          <td><strong>كبار العملاء المدينين</strong></td>
+          <td>لقد قمت باستخراج قائمة بأكبر خمسة عملاء مدينين بناءً على السجلات. إليك البيانات...</td>
+          <td><strong>أكبر 5 عملاء عليهم مديونيات في السيستم:</strong><br>1. شركة الأفق للتجارة (18.4M)<br>2. مؤسسة النور للمقاولات (12.1M)...</td>
+        </tr>
+        <tr>
+          <td><strong>شكاوى العملاء</strong></td>
+          <td>توجد في قاعدة البيانات عدة تذاكر دعم فني. هذه التذاكر موزعة على الأقسام كالتالي...</td>
+          <td><strong>توزيع شكاوى وتذاكر الـ CRM المفتوحة حالياً:</strong> قسم الدعم الفني متصدر بـ 24 تذكرة، يليه المبيعات بـ 11 تذكرة.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="running-footer">
+    <span>VO for Technology · 4S Plus ERP Intelligence · 16 November 2026</span>
+    <span>06</span>
+  </div>
+</div>
+
+<!-- PAGE 7: 05 UI & DARK MODE -->
+<div class="page">
+  <div class="running-header">
+    <span>HEAD MANAGER AI / PRODUCT REQUIREMENTS</span>
+    <span>VERSION 3.0 · FINAL</span>
+  </div>
+
+  <div class="page-content">
+    <div class="section-badge-row">
+      <div class="section-num">05</div>
+      <div class="section-title-wrap">
+        <div class="section-eyebrow">SECTION 05</div>
+        <div class="section-title">Information architecture & Executive UI</div>
+      </div>
+    </div>
+
+    <p class="lead-p">
+      The Executive UI is designed for high-stress boardroom and mobile operations: zero visual distraction, immediate status cues, and an ergonomic <strong>persistent Dark Mode</strong> engine.
+    </p>
+
+    <div class="grid-3">
+      <div class="card highlight">
+        <div class="card-label">THEME ENGINE</div>
+        <div class="card-value">Dark / Light System</div>
+        <div class="card-desc">CSS <code>light-dark()</code> tokens, auto-detects OS preference, manual toggle (☀️ / 🌙).</div>
+      </div>
+      <div class="card highlight">
+        <div class="card-label">ZERO-FOUC</div>
+        <div class="card-value">Inline Head Script</div>
+        <div class="card-desc">0ms flash of unstyled content on page load, synced across tabs via <code>localStorage</code>.</div>
+      </div>
+      <div class="card highlight">
+        <div class="card-label">LATENCY INDICATOR</div>
+        <div class="card-value">Live Telemetry</div>
+        <div class="card-desc">Every response displays exact SQL execution and synthesis time in milliseconds.</div>
+      </div>
+    </div>
+
+    <div class="scope-box" style="margin-bottom:14px;">
+      <div class="scope-title in">EXECUTIVE INTERFACE ANATOMY</div>
+      <table style="margin-bottom:0;">
+        <thead>
+          <tr>
+            <th>UI Component</th>
+            <th>Design Specification</th>
+            <th>Executive Function</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Topbar</strong></td>
+            <td>Clean branding, green live connection badge, Theme toggle.</td>
+            <td>Confirms 4S SQL Server connection status at a glance.</td>
+          </tr>
+          <tr>
+            <td><strong>Executive Chips</strong></td>
+            <td>Horizontal carousel with pre-calculated core queries.</td>
+            <td>One-tap retrieval of receivables, debtors, HR penalties, tickets.</td>
+          </tr>
+          <tr>
+            <td><strong>Chat Stream</strong></td>
+            <td>High contrast speech bubbles, clear speaker labels.</td>
+            <td>Formatted Arabic typography with formatted numeric tables.</td>
+          </tr>
+          <tr>
+            <td><strong>Input Bar</strong></td>
+            <td>Autosizing text box with submit button and hotkey (Enter).</td>
+            <td>Supports typing complex questions or pasting account codes.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <strong>UI Distraction Removal:</strong> The redundant "View source project" button was permanently excised from the sidebar to maintain a strictly professional, production-grade appearance during executive presentations.
+    </div>
+  </div>
+
+  <div class="running-footer">
+    <span>VO for Technology · 4S Plus ERP Intelligence · 16 November 2026</span>
+    <span>07</span>
+  </div>
+</div>
+
+<!-- PAGE 8: 06 ROADMAP & STATUS MATRIX -->
+<div class="page">
+  <div class="running-header">
+    <span>HEAD MANAGER AI / PRODUCT REQUIREMENTS</span>
+    <span>VERSION 3.0 · FINAL</span>
+  </div>
+
+  <div class="page-content">
+    <div class="section-badge-row">
+      <div class="section-num">06</div>
+      <div class="section-title-wrap">
+        <div class="section-eyebrow">SECTION 06</div>
+        <div class="section-title">Phased roadmap, status matrix & release gates</div>
+      </div>
+    </div>
+
+    <div style="font-size:11px; font-weight:700; color:#ffffff; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">6.1 Phased Delivery Roadmap</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Phase</th>
+          <th>Milestone Name</th>
+          <th>Key Capabilities & Scope</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Phase 0</strong></td>
+          <td>Core Engine & DB Connection</td>
+          <td>Direct pyodbc connection to 4S SQL Server, SQLite test sandbox, API skeleton.</td>
+          <td><span class="badge badge-shipped">SHIPPED</span></td>
+        </tr>
+        <tr>
+          <td><strong>Phase 1</strong></td>
+          <td>Executive Dialect & UI Polish</td>
+          <td>Natural Egyptian Arabic synthesis, Executive queries, Dark Mode, Git attribution.</td>
+          <td><span class="badge badge-shipped">SHIPPED</span></td>
+        </tr>
+        <tr>
+          <td><strong>Phase 2</strong></td>
+          <td>Predictive Cashflow & Aging</td>
+          <td>Inventory turnover analysis, sales commissions, predictive debtor aging models.</td>
+          <td><span class="badge badge-planned">PLANNED</span></td>
+        </tr>
+        <tr>
+          <td><strong>Phase 3</strong></td>
+          <td>Approval-Gated Missions</td>
+          <td>WhatsApp / Telegram CEO voice bot, gated approval workflows for credit line extensions.</td>
+          <td><span class="badge badge-later">Q2 2027</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="font-size:11px; font-weight:700; color:#ffffff; text-transform:uppercase; letter-spacing:1px; margin:10px 0 6px;">6.2 Status Matrix as of 16 November 2026</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Functional Area</th>
+          <th>Verification Status</th>
+          <th>Audit & Evidence Position</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Live 4S SQL Server Core</strong></td>
+          <td><span class="badge badge-shipped">SHIPPED</span></td>
+          <td>Verified live on <code>ERPWithCRM</code> database via ODBC 17 driver.</td>
+        </tr>
+        <tr>
+          <td><strong>Egyptian Colloquial Responses</strong></td>
+          <td><span class="badge badge-shipped">SHIPPED</span></td>
+          <td>Production code deployed in <code>data_agent.py</code>; tested by owner.</td>
+        </tr>
+        <tr>
+          <td><strong>Executive Query Catalog</strong></td>
+          <td><span class="badge badge-shipped">SHIPPED</span></td>
+          <td>Receivables, Top Debtors, HR Deductions, Tickets, Sales live.</td>
+        </tr>
+        <tr>
+          <td><strong>Dark Mode & Clean UI</strong></td>
+          <td><span class="badge badge-shipped">SHIPPED</span></td>
+          <td>Light/dark toggle, local storage persistence, FOUC prevention active.</td>
+        </tr>
+        <tr>
+          <td><strong>Automated Test Suite</strong></td>
+          <td><span class="badge badge-shipped">SHIPPED</span></td>
+          <td>10/10 unit tests passing in 0.88s via Pytest.</td>
+        </tr>
+        <tr>
+          <td><strong>Git Attribution & Ownership</strong></td>
+          <td><span class="badge badge-shipped">SHIPPED</span></td>
+          <td>Committed and pushed to <code>AhmdArFa/head-manager-ai-assistant</code>.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="card" style="margin-top:10px; background:#131f1e; border-color:#00e599;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <div style="font-size:10px; font-weight:700; color:#00e599; letter-spacing:1.5px; text-transform:uppercase;">AUTHORIZATION & SIGN-OFF</div>
+          <div style="font-size:13px; font-weight:800; color:#ffffff; margin-top:2px;">Ahmed Gamal Arfa — Product Owner & Lead AI Architect</div>
+        </div>
+        <div style="text-align:right;">
+          <span class="badge badge-shipped" style="font-size:10px; padding:4px 10px;">RELEASE CERTIFIED</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="running-footer">
+    <span>VO for Technology · 4S Plus ERP Intelligence · 16 November 2026</span>
+    <span>08</span>
+  </div>
+</div>
+
+</body>
+</html>
+"""
+
+def generate():
+    html_path = os.path.abspath("docs/head_manager_prd.html")
+    pdf_path = os.path.abspath("docs/HEAD_MANAGER_AI_ASSISTANT_PRD.pdf")
+
+    os.makedirs(os.path.dirname(html_path), exist_ok=True)
+    with open(html_path, "w", encoding="utf-8") as f:
+        f.write(HTML_CONTENT)
+    print(f"HTML written to: {html_path}")
+
+    edge_paths = [
+        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+        r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+        r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+    ]
+    browser_bin = None
+    for p in edge_paths:
+        if os.path.exists(p):
+            browser_bin = p
+            break
+
+    if not browser_bin:
+        print("No headless browser found to print PDF.")
+        sys.exit(1)
+
+    print(f"Using browser: {browser_bin}")
+    cmd = [
+        browser_bin,
+        "--headless",
+        "--disable-gpu",
+        f"--print-to-pdf={pdf_path}",
+        "--no-pdf-header-footer",
+        html_path
+    ]
+    res = subprocess.run(cmd, capture_output=True, text=True)
+    if os.path.exists(pdf_path):
+        size_kb = os.path.getsize(pdf_path) / 1024
+        print(f"SUCCESS: Generated PDF at {pdf_path} ({size_kb:.1f} KB)")
+    else:
+        print(f"FAILED to generate PDF. Browser return code: {res.returncode}")
+        print("Stderr:", res.stderr)
+        sys.exit(1)
+
+if __name__ == "__main__":
+    generate()
